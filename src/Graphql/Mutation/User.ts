@@ -64,18 +64,24 @@ export const deleteUserMutation = mutationField('deleteUser', {
       return null;
     } else {
       try {
-        const [deletedUser, , , detailsOfDeletedPost] = await Promise.all([
-          await prisma.user.delete({ where: { id } }),
-          await prisma.post.deleteMany({ where: { authorId: id } }),
+        // onDelete cascade is not supported yet. so...
+        // first we will delete the comments and we will get the posts that are created by the user.
+        const [_, detailsOfDeletedPost] = await Promise.all([
           await prisma.comment.deleteMany({ where: { authorId: id } }),
           await prisma.post.findMany({ where: { authorId: id } }),
         ]);
+        // deleting comments of posts we will delete in next step.
         for (const post of detailsOfDeletedPost) {
           await prisma.comment.deleteMany({ where: { postId: post.id } });
         }
+
+        // deleting posts
+        await prisma.post.deleteMany({ where: { authorId: id } });
+        // finally we are deleting user
+        const deletedUser = await prisma.user.delete({ where: { id } });
         return deletedUser;
       } catch (e) {
-        throw new Error('somthing went wrong');
+        throw new Error(e);
       }
     }
   },

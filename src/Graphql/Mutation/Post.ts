@@ -1,5 +1,4 @@
 import { mutationField, nonNull, stringArg } from 'nexus';
-import { Post } from '../../types/backingTypes';
 
 export const createPostMutation = mutationField('createPost', {
   type: nonNull('Post'),
@@ -62,17 +61,15 @@ export const deletePostMutation = mutationField('deletePost', {
     if (!post) {
       return null;
     } else {
-      const [deletedPost, deleltedComments] = await Promise.allSettled([
-        prisma.post.delete({ where: { id } }),
-        prisma.comment.deleteMany({ where: { postId: id } }),
-      ]);
-      if (
-        deleltedComments.status === 'fulfilled' &&
-        deletedPost.status === 'fulfilled'
-      ) {
-        return deletedPost.value;
-      } else {
-        throw new Error('internal database Error');
+      try {
+        // onDelete-cascade is not supported so..
+        //first we are deleting Comment.
+        await prisma.comment.deleteMany({ where: { postId: id } });
+        //then we are deleting posts.
+        const deletedpost = await prisma.post.delete({ where: { id } });
+        return deletedpost;
+      } catch (e) {
+        throw new Error(e);
       }
     }
   },
