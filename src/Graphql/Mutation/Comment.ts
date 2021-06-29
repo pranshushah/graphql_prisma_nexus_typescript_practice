@@ -1,21 +1,28 @@
 import { mutationField, nonNull } from 'nexus';
+import { verifyUser } from '../../utils/verifyUser';
 
 export const createCommentMutation = mutationField('createComment', {
   type: nonNull('Comment'),
   args: {
     data: nonNull('createComment'),
   },
-  async resolve(_, args, { prisma, pubsub }) {
-    const { postId, authorId, text } = args.data;
+  async resolve(_, args, { prisma, pubsub, auth }) {
+    //protecting route from unauthorized user.
+    const { id } = verifyUser(auth);
+
+    const { postId, text } = args.data;
     const [userExist, postExist] = await Promise.all([
-      await prisma.user.findFirst({ where: { id: authorId } }),
+      await prisma.user.findFirst({ where: { id } }),
       await prisma.post.findFirst({ where: { id: postId, published: true } }),
     ]);
-    if (!userExist || !postExist) {
+    if (!userExist) {
       throw new Error('author does not exist');
     }
+    if (!postExist) {
+      throw new Error('post does not exist');
+    }
     const newComment = await prisma.comment.create({
-      data: { text, postId, authorId },
+      data: { text, postId, authorId: id },
     });
     pubsub.publish(`comment ${postId}`, {
       comment: newComment,
@@ -30,8 +37,12 @@ export const updateCommentMutation = mutationField('updateComment', {
   args: {
     data: nonNull('updateComment'),
   },
-  async resolve(_, { data }, { prisma, pubsub }) {
-    const { id, authorId, postId, text } = data;
+  async resolve(_, { data }, { prisma, pubsub, auth }) {
+    //protecting route from unauthorized user.
+    //https://flaviocopes.com/how-to-rename-object-destructuring/
+    const { id: authorId } = verifyUser(auth);
+
+    const { id, postId, text } = data;
     const oldComment = await prisma.comment.findFirst({
       where: { id, authorId, postId },
     });
@@ -56,8 +67,11 @@ export const deleteCommentMutation = mutationField('deleteComment', {
   args: {
     data: nonNull('deleteComment'),
   },
-  async resolve(_, { data }, { prisma, pubsub }) {
-    const { id, authorId, postId } = data;
+  async resolve(_, { data }, { prisma, pubsub, auth }) {
+    //protecting route from unauthorized user.
+    //https://flaviocopes.com/how-to-rename-object-destructuring/
+    const { id: authorId } = verifyUser(auth);
+    const { id, postId } = data;
     const commentWeWantToDelete = await prisma.comment.findFirst({
       where: { id, authorId, postId },
     });

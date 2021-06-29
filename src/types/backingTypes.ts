@@ -1,7 +1,7 @@
 import { PubSub } from 'graphql-yoga';
 import { NexusGenEnums } from '../generated/nexus-typegen';
 import { PrismaClient } from '@prisma/client';
-
+import { Response } from 'express';
 export type Post = {
   authorId: string;
   body: string;
@@ -26,12 +26,20 @@ export type Comment = {
   postId: string;
 };
 
-export type ContextType = {
-  pubsub: PubSub;
-  prisma: PrismaClient;
-};
-
 export type CommentSubscription = {
   comment: Comment;
   variant: NexusGenEnums['MutationType'];
+};
+
+export type Payload = {
+  id: string;
+  email: string;
+  fullName: string;
+};
+
+export type ContextType = {
+  pubsub: PubSub;
+  prisma: PrismaClient;
+  auth: string;
+  response: Response;
 };

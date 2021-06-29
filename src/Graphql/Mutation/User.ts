@@ -1,36 +1,59 @@
-import { mutationField, nonNull, stringArg } from 'nexus';
+import { mutationField, nonNull } from 'nexus';
+import { Password } from '../../utils/password';
+import { JWT } from '../../utils/jwt';
+import { verifyUser } from '../../utils/verifyUser';
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 export const createUserMutation = mutationField('createUser', {
-  type: nonNull('User'),
+  type: nonNull('basicUserInfoAndAccessToken'),
   args: {
     data: nonNull('createUser'),
   },
-  async resolve(_, args, { prisma }) {
-    const { email, fullName } = args.data;
-    const userWithGivenEmail = await prisma.user.findFirst({
+  async resolve(_, args, { prisma, response }) {
+    const { email, fullName, password } = args.data;
+    const userWithGivenEmail = await prisma.user.findUnique({
       where: { email },
     });
     if (userWithGivenEmail) {
       throw new Error('email already exist');
     } else {
+      const { salt, hashedPassword } = await Password.toHash(password);
       const user = await prisma.user.create({
         data: {
           email,
           fullName,
+          password: hashedPassword,
+          salt,
         },
       });
-      return user;
+
+      const accessToken = JWT.CREATE_ACCESS_TOKEN(user);
+      const refreshToken = JWT.CREATE_REFRESH_TOKEN(user);
+
+      response.cookie(process.env.JWT_COKKIE_NAME as string, refreshToken, {
+        httpOnly: true,
+      });
+      return {
+        email: user.email,
+        fullName: user.fullName,
+        accessToken,
+      };
     }
   },
 });
 
 export const updateUserMutation = mutationField('updateUser', {
-  type: 'User',
+  type: 'basicUserInfoAndAccessToken',
   args: {
     data: nonNull('updateUser'),
   },
-  async resolve(_, args, { prisma }) {
-    const { email, fullName, id } = args.data;
+  async resolve(_, args, { prisma, auth, response }) {
+    //protecting route from unauthorized user.
+    const { id } = verifyUser(auth);
+
+    const { email, fullName } = args.data;
     const oldUser = await prisma.user.findFirst({ where: { id } });
     if (!oldUser) {
       return null;
@@ -46,19 +69,27 @@ export const updateUserMutation = mutationField('updateUser', {
         data: { ...updatedUser },
         where: { id },
       });
-      return updatedUserFromDb;
+
+      const refreshToken = JWT.CREATE_REFRESH_TOKEN(updatedUserFromDb);
+
+      response.cookie(process.env.JWT_COKKIE_NAME as string, refreshToken, {
+        httpOnly: true,
+      });
+
+      return {
+        fullName: updatedUserFromDb.fullName,
+        email: updatedUserFromDb.email,
+        accessToken: JWT.CREATE_ACCESS_TOKEN(updatedUserFromDb),
+      };
     }
   },
 });
 
 export const deleteUserMutation = mutationField('deleteUser', {
   type: 'User',
-  args: {
-    id: nonNull(
-      stringArg({ description: 'id of the user you want to delete' }),
-    ),
-  },
-  async resolve(_, { id }, { prisma }) {
+  async resolve(_, __, { prisma, auth }) {
+    //protecting route from unauthorized user.
+    const { id } = verifyUser(auth);
     const userWeWantToDelete = prisma.user.findFirst({ where: { id } });
     if (!userWeWantToDelete) {
       return null;

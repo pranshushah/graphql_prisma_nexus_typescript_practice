@@ -1,4 +1,6 @@
+import { User } from '@prisma/client';
 import { queryField, nonNull, stringArg, list } from 'nexus';
+import { verifyUser } from '../../utils/verifyUser';
 
 export const Query1 = queryField('greeting', {
   type: nonNull('String'),
@@ -17,7 +19,8 @@ export const Query2 = queryField('users', {
   args: {
     searchByName: stringArg({ description: 'search the users by the name' }),
   },
-  async resolve(_, { searchByName }, { prisma }) {
+  async resolve(_, { searchByName }, { prisma, auth }) {
+    console.log(auth.split(' '));
     if (searchByName) {
       return await prisma.user.findMany({
         where: { fullName: { contains: searchByName } },
@@ -52,5 +55,15 @@ export const Query4 = queryField('comment', {
   type: nonNull(list(nonNull('Comment'))),
   async resolve(_, __, { prisma }) {
     return prisma.comment.findMany();
+  },
+});
+
+export const currentUser = queryField('currentUser', {
+  type: 'User',
+  async resolve(_, __, { prisma, auth }) {
+    //protecting route from unauthorized user.
+    const { id } = verifyUser(auth);
+    const user = (await prisma.user.findFirst({ where: { id } })) as User;
+    return { id: user.id, email: user.email, fullName: user.fullName };
   },
 });

@@ -22,6 +22,18 @@ export const User = objectType({
   },
 });
 
+export const basicUserInfoAndAccessToken = objectType({
+  name: 'basicUserInfoAndAccessToken',
+  definition(t) {
+    t.nonNull.string('fullName', { description: 'Full name of the user' });
+    t.nonNull.string('email', { description: 'email of the user' });
+    t.nonNull.string('accessToken', {
+      description:
+        'jwt access token please store in authorization header at every request',
+    });
+  },
+});
+
 export const Post = objectType({
   name: 'Post',
   definition(t) {
@@ -79,6 +91,7 @@ export const createUser = inputObjectType({
   name: 'createUser',
   definition(t) {
     t.nonNull.string('fullName', { deprecation: 'fullName of the user' });
+    t.nonNull.string('password', { description: 'password of the user' });
     t.nonNull.string('email', { deprecation: 'email of the user' });
   },
 });
@@ -86,7 +99,6 @@ export const createUser = inputObjectType({
 export const createComment = inputObjectType({
   name: 'createComment',
   definition(t) {
-    t.nonNull.string('authorId', { description: 'author of the comment' });
     t.nonNull.string('text', { description: 'text of the comment' });
     t.nonNull.string('postId', { description: 'postId of the comment' });
   },
@@ -97,7 +109,6 @@ export const createPost = inputObjectType({
   definition(t) {
     t.nonNull.string('title', { description: 'title of the post' });
     t.nonNull.string('body', { description: 'body of the post' });
-    t.nonNull.string('authorId', { description: 'author of the post' });
     t.nonNull.boolean('published', {
       description: 'is it published or not',
       default: false,
@@ -108,7 +119,6 @@ export const createPost = inputObjectType({
 export const updateUser = inputObjectType({
   name: 'updateUser',
   definition(t) {
-    t.nonNull.id('id', { description: 'Id of the user' });
     t.string('fullName', { description: 'Full name of the user' });
     t.string('email', { description: 'email of the user' });
   },
@@ -118,7 +128,6 @@ export const updatePost = inputObjectType({
   name: 'updatePost',
   definition(t) {
     t.nonNull.id('id', { description: 'id of the post' });
-    t.nonNull.id('authorId', { description: 'id of the user' });
     t.string('title', { description: 'title of the post' });
     t.string('body', { description: 'body of the post' });
     t.boolean('published', {
@@ -130,7 +139,6 @@ export const updatePost = inputObjectType({
 export const updateComment = inputObjectType({
   name: 'updateComment',
   definition(t) {
-    t.nonNull.id('authorId', { description: 'author of the comment' });
     t.nonNull.id('id', { description: 'id of the comment' });
     t.nonNull.string('text', { description: 'text of the comment' });
     t.nonNull.id('postId', { description: 'postId of the comment' });
@@ -140,7 +148,6 @@ export const updateComment = inputObjectType({
 export const deleteComment = inputObjectType({
   name: 'deleteComment',
   definition(t) {
-    t.nonNull.id('authorId', { description: 'author of the comment' });
     t.nonNull.id('id', { description: 'id of the comment' });
     t.nonNull.id('postId', { description: 'postId of the comment' });
   },

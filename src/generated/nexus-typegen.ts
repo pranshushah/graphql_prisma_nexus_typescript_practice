@@ -15,12 +15,10 @@ declare global {
 
 export interface NexusGenInputs {
   createComment: { // input type
-    authorId: string; // String!
     postId: string; // String!
     text: string; // String!
   }
   createPost: { // input type
-    authorId: string; // String!
     body: string; // String!
     published: boolean; // Boolean!
     title: string; // String!
@@ -28,20 +26,18 @@ export interface NexusGenInputs {
   createUser: { // input type
     email: string; // String!
     fullName: string; // String!
+    password: string; // String!
   }
   deleteComment: { // input type
-    authorId: string; // ID!
     id: string; // ID!
     postId: string; // ID!
   }
   updateComment: { // input type
-    authorId: string; // ID!
     id: string; // ID!
     postId: string; // ID!
     text: string; // String!
   }
   updatePost: { // input type
-    authorId: string; // ID!
     body?: string | null; // String
     id: string; // ID!
     published?: boolean | null; // Boolean
@@ -50,7 +46,6 @@ export interface NexusGenInputs {
   updateUser: { // input type
     email?: string | null; // String
     fullName?: string | null; // String
-    id: string; // ID!
   }
 }
 
@@ -77,6 +72,11 @@ export interface NexusGenObjects {
   Query: {};
   Subscription: {};
   User: swapi.User;
+  basicUserInfoAndAccessToken: { // root type
+    accessToken: string; // String!
+    email: string; // String!
+    fullName: string; // String!
+  }
 }
 
 export interface NexusGenInterfaces {
@@ -103,13 +103,13 @@ export interface NexusGenFieldTypes {
   Mutation: { // field return type
     createComment: NexusGenRootTypes['Comment']; // Comment!
     createPost: NexusGenRootTypes['Post']; // Post!
-    createUser: NexusGenRootTypes['User']; // User!
+    createUser: NexusGenRootTypes['basicUserInfoAndAccessToken']; // basicUserInfoAndAccessToken!
     deleteComment: NexusGenRootTypes['Comment'] | null; // Comment
     deletePost: NexusGenRootTypes['Post'] | null; // Post
     deleteUser: NexusGenRootTypes['User'] | null; // User
     updateComment: NexusGenRootTypes['Comment'] | null; // Comment
     updatePost: NexusGenRootTypes['Post'] | null; // Post
-    updateUser: NexusGenRootTypes['User'] | null; // User
+    updateUser: NexusGenRootTypes['basicUserInfoAndAccessToken'] | null; // basicUserInfoAndAccessToken
   }
   Post: { // field return type
     author: NexusGenRootTypes['User']; // User!
@@ -121,6 +121,7 @@ export interface NexusGenFieldTypes {
   }
   Query: { // field return type
     comment: NexusGenRootTypes['Comment'][]; // [Comment!]!
+    currentUser: NexusGenRootTypes['User'] | null; // User
     greeting: string; // String!
     post: NexusGenRootTypes['Post'][]; // [Post!]!
     users: NexusGenRootTypes['User'][]; // [User!]!
@@ -135,6 +136,11 @@ export interface NexusGenFieldTypes {
     fullName: string; // String!
     id: string; // ID!
     posts: NexusGenRootTypes['Post'][]; // [Post!]!
+  }
+  basicUserInfoAndAccessToken: { // field return type
+    accessToken: string; // String!
+    email: string; // String!
+    fullName: string; // String!
   }
 }
 
@@ -152,13 +158,13 @@ export interface NexusGenFieldTypeNames {
   Mutation: { // field return type name
     createComment: 'Comment'
     createPost: 'Post'
-    createUser: 'User'
+    createUser: 'basicUserInfoAndAccessToken'
     deleteComment: 'Comment'
     deletePost: 'Post'
     deleteUser: 'User'
     updateComment: 'Comment'
     updatePost: 'Post'
-    updateUser: 'User'
+    updateUser: 'basicUserInfoAndAccessToken'
   }
   Post: { // field return type name
     author: 'User'
@@ -170,6 +176,7 @@ export interface NexusGenFieldTypeNames {
   }
   Query: { // field return type name
     comment: 'Comment'
+    currentUser: 'User'
     greeting: 'String'
     post: 'Post'
     users: 'User'
@@ -184,6 +191,11 @@ export interface NexusGenFieldTypeNames {
     fullName: 'String'
     id: 'ID'
     posts: 'Post'
+  }
+  basicUserInfoAndAccessToken: { // field return type name
+    accessToken: 'String'
+    email: 'String'
+    fullName: 'String'
   }
 }
 
@@ -202,9 +214,6 @@ export interface NexusGenArgTypes {
       data: NexusGenInputs['deleteComment']; // deleteComment!
     }
     deletePost: { // args
-      id: string; // String!
-    }
-    deleteUser: { // args
       id: string; // String!
     }
     updateComment: { // args
