@@ -2,6 +2,17 @@
 ### Do not make changes to this file directly
 
 
+type basicUserInfoAndAccessToken {
+  """jwt access token please store in authorization header at every request"""
+  accessToken: String!
+
+  """email of the user"""
+  email: String!
+
+  """Full name of the user"""
+  fullName: String!
+}
+
 type Comment {
   """author of the comment"""
   author: User!
@@ -22,9 +33,6 @@ type CommentSubscriptionType {
 }
 
 input createComment {
-  """author of the comment"""
-  authorId: String!
-
   """postId of the comment"""
   postId: String!
 
@@ -33,9 +41,6 @@ input createComment {
 }
 
 input createPost {
-  """author of the post"""
-  authorId: String!
-
   """body of the post"""
   body: String!
 
@@ -49,12 +54,12 @@ input createPost {
 input createUser {
   email: String!
   fullName: String!
+
+  """password of the user"""
+  password: String!
 }
 
 input deleteComment {
-  """author of the comment"""
-  authorId: ID!
-
   """id of the comment"""
   id: ID!
 
@@ -62,22 +67,28 @@ input deleteComment {
   postId: ID!
 }
 
+input loginUser {
+  email: String!
+
+  """password of the user"""
+  password: String!
+}
+
 type Mutation {
   createComment(data: createComment!): Comment!
   createPost(data: createPost!): Post!
-  createUser(data: createUser!): User!
+  createUser(data: createUser!): basicUserInfoAndAccessToken!
   deleteComment(data: deleteComment!): Comment
   deletePost(
     """id of the post you want to delete"""
     id: String!
   ): Post
-  deleteUser(
-    """id of the user you want to delete"""
-    id: String!
-  ): User
+  deleteUser: User
+  loginUserMutation(data: loginUser!): basicUserInfoAndAccessToken!
+  logOutUserMutation: Boolean
   updateComment(data: updateComment!): Comment
   updatePost(data: updatePost!): Post
-  updateUser(data: updateUser!): User
+  updateUser(data: updateUser!): basicUserInfoAndAccessToken
 }
 
 """tells us about which type of mutation is happening in subscribtion"""
@@ -107,10 +118,7 @@ type Post {
 
 type Query {
   comment: [Comment!]!
-  greeting(
-    """name you want in string"""
-    name: String! = "pranshu"
-  ): String!
+  currentUser: User
   post(
     """search the posts by title or body"""
     searchByNameOrBody: String
@@ -130,9 +138,6 @@ type Subscription {
 }
 
 input updateComment {
-  """author of the comment"""
-  authorId: ID!
-
   """id of the comment"""
   id: ID!
 
@@ -144,9 +149,6 @@ input updateComment {
 }
 
 input updatePost {
-  """id of the user"""
-  authorId: ID!
-
   """body of the post"""
   body: String
 
@@ -166,9 +168,6 @@ input updateUser {
 
   """Full name of the user"""
   fullName: String
-
-  """Id of the user"""
-  id: ID!
 }
 
 type User {
