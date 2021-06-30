@@ -37,6 +37,10 @@ export type Payload = {
   fullName: string;
 };
 
+export interface RefreshTokenPayload extends Payload {
+  tokenVersion: number;
+}
+
 export type ContextType = {
   pubsub: PubSub;
   prisma: PrismaClient;

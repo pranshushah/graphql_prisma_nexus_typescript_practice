@@ -96,6 +96,14 @@ export const createUser = inputObjectType({
   },
 });
 
+export const loginUser = inputObjectType({
+  name: 'loginUser',
+  definition(t) {
+    t.nonNull.string('password', { description: 'password of the user' });
+    t.nonNull.string('email', { deprecation: 'email of the user' });
+  },
+});
+
 export const createComment = inputObjectType({
   name: 'createComment',
   definition(t) {

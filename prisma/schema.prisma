@@ -16,6 +16,7 @@ model User{
   fullName String
   password String
   salt String
+  tokenVersion Int @default(0) // we will increment the tokenVersion whenever user gets new refresh_token. 
   comments Comment[]
   posts Post[]
 }

@@ -32,6 +32,10 @@ export interface NexusGenInputs {
     id: string; // ID!
     postId: string; // ID!
   }
+  loginUser: { // input type
+    email: string; // String!
+    password: string; // String!
+  }
   updateComment: { // input type
     id: string; // ID!
     postId: string; // ID!
@@ -107,6 +111,8 @@ export interface NexusGenFieldTypes {
     deleteComment: NexusGenRootTypes['Comment'] | null; // Comment
     deletePost: NexusGenRootTypes['Post'] | null; // Post
     deleteUser: NexusGenRootTypes['User'] | null; // User
+    loginUserMutation: NexusGenRootTypes['basicUserInfoAndAccessToken']; // basicUserInfoAndAccessToken!
+    logOutUserMutation: boolean | null; // Boolean
     updateComment: NexusGenRootTypes['Comment'] | null; // Comment
     updatePost: NexusGenRootTypes['Post'] | null; // Post
     updateUser: NexusGenRootTypes['basicUserInfoAndAccessToken'] | null; // basicUserInfoAndAccessToken
@@ -122,7 +128,6 @@ export interface NexusGenFieldTypes {
   Query: { // field return type
     comment: NexusGenRootTypes['Comment'][]; // [Comment!]!
     currentUser: NexusGenRootTypes['User'] | null; // User
-    greeting: string; // String!
     post: NexusGenRootTypes['Post'][]; // [Post!]!
     users: NexusGenRootTypes['User'][]; // [User!]!
   }
@@ -162,6 +167,8 @@ export interface NexusGenFieldTypeNames {
     deleteComment: 'Comment'
     deletePost: 'Post'
     deleteUser: 'User'
+    loginUserMutation: 'basicUserInfoAndAccessToken'
+    logOutUserMutation: 'Boolean'
     updateComment: 'Comment'
     updatePost: 'Post'
     updateUser: 'basicUserInfoAndAccessToken'
@@ -177,7 +184,6 @@ export interface NexusGenFieldTypeNames {
   Query: { // field return type name
     comment: 'Comment'
     currentUser: 'User'
-    greeting: 'String'
     post: 'Post'
     users: 'User'
   }
@@ -216,6 +222,9 @@ export interface NexusGenArgTypes {
     deletePost: { // args
       id: string; // String!
     }
+    loginUserMutation: { // args
+      data: NexusGenInputs['loginUser']; // loginUser!
+    }
     updateComment: { // args
       data: NexusGenInputs['updateComment']; // updateComment!
     }
@@ -227,9 +236,6 @@ export interface NexusGenArgTypes {
     }
   }
   Query: {
-    greeting: { // args
-      name: string; // String!
-    }
     post: { // args
       searchByNameOrBody?: string | null; // String
     }

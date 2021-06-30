@@ -1,5 +1,6 @@
 import { verify } from 'jsonwebtoken';
 import { Payload } from '../types/backingTypes';
+import { PrismaClient } from '@prisma/client';
 
 export function verifyUser(authToken: string) {
   if (authToken !== '') {

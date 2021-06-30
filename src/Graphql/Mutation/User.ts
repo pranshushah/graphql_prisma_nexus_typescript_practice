@@ -30,17 +30,69 @@ export const createUserMutation = mutationField('createUser', {
       });
 
       const accessToken = JWT.CREATE_ACCESS_TOKEN(user);
-      const refreshToken = JWT.CREATE_REFRESH_TOKEN(user);
+      JWT.CREATE_REFRESH_TOKEN(user, response);
 
-      response.cookie(process.env.JWT_COKKIE_NAME as string, refreshToken, {
-        httpOnly: true,
-      });
       return {
         email: user.email,
         fullName: user.fullName,
         accessToken,
       };
     }
+  },
+});
+
+export const loginUserMutation = mutationField('loginUserMutation', {
+  type: nonNull('basicUserInfoAndAccessToken'),
+  args: {
+    data: nonNull('loginUser'),
+  },
+  async resolve(_, args, { prisma, response }) {
+    const { email, password } = args.data;
+    // checking for if email is correct.
+    const user = await prisma.user.findFirst({ where: { email } });
+    if (!user) {
+      throw Error('invalid email');
+    } else {
+      const correctPassword = await Password.compare(
+        user.password,
+        user.salt,
+        password,
+      );
+      if (correctPassword) {
+        //everthing is ok so we will update the tokenVersion and return the user,accessToken and refresh token
+        const updatedUser = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            tokenVersion: {
+              increment: 1,
+            },
+          },
+        });
+
+        const accessToken = JWT.CREATE_ACCESS_TOKEN(updatedUser);
+        JWT.CREATE_REFRESH_TOKEN(updatedUser, response);
+
+        return {
+          email: user.email,
+          fullName: user.fullName,
+          accessToken,
+        };
+      } else {
+        throw new Error('enter correct password');
+      }
+    }
+  },
+});
+
+export const logOutUserMutation = mutationField('logOutUserMutation', {
+  type: 'Boolean',
+  async resolve(_, __, { prisma, response, auth }) {
+    //protecting route from unauthorized user.
+    verifyUser(auth);
+    response.cookie(process.env.JWT_COKKIE_NAME!, 'EMPTY', {
+      httpOnly: true,
+    });
+    return true;
   },
 });
 
@@ -66,15 +118,11 @@ export const updateUserMutation = mutationField('updateUser', {
         updatedUser.fullName = fullName;
       }
       const updatedUserFromDb = await prisma.user.update({
-        data: { ...updatedUser },
+        data: { ...updatedUser, tokenVersion: { increment: 1 } },
         where: { id },
       });
 
-      const refreshToken = JWT.CREATE_REFRESH_TOKEN(updatedUserFromDb);
-
-      response.cookie(process.env.JWT_COKKIE_NAME as string, refreshToken, {
-        httpOnly: true,
-      });
+      JWT.CREATE_REFRESH_TOKEN(updatedUserFromDb, response);
 
       return {
         fullName: updatedUserFromDb.fullName,

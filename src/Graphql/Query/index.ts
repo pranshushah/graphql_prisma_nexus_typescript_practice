@@ -2,18 +2,6 @@ import { User } from '@prisma/client';
 import { queryField, nonNull, stringArg, list } from 'nexus';
 import { verifyUser } from '../../utils/verifyUser';
 
-export const Query1 = queryField('greeting', {
-  type: nonNull('String'),
-  args: {
-    name: nonNull(
-      stringArg({ description: 'name you want in string', default: 'pranshu' }),
-    ),
-  },
-  resolve(_, { name }) {
-    return 'Hello ' + name;
-  },
-});
-
 export const Query2 = queryField('users', {
   type: nonNull(list(nonNull('User'))),
   args: {
