@@ -7,8 +7,7 @@ export const Query2 = queryField('users', {
   args: {
     searchByName: stringArg({ description: 'search the users by the name' }),
   },
-  async resolve(_, { searchByName }, { prisma, auth }) {
-    console.log(auth.split(' '));
+  async resolve(_, { searchByName }, { prisma }) {
     if (searchByName) {
       return await prisma.user.findMany({
         where: { fullName: { contains: searchByName } },
@@ -22,19 +21,20 @@ export const Query3 = queryField('post', {
   type: nonNull(list(nonNull('Post'))),
   args: {
     searchByNameOrBody: stringArg({
-      description: 'search the posts by title or body',
+      description: 'search the published posts by title or body',
     }),
   },
-  async resolve(_, { searchByNameOrBody }, { prisma }) {
+  async resolve(_, { searchByNameOrBody }, { prisma, auth }) {
     if (searchByNameOrBody) {
       return await prisma.post.findMany({
         where: {
           title: { contains: searchByNameOrBody },
           body: { contains: searchByNameOrBody },
+          published: true,
         },
       });
     } else {
-      return await prisma.post.findMany();
+      return await prisma.post.findMany({ where: { published: true } });
     }
   },
 });

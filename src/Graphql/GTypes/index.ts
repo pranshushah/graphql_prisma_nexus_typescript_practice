@@ -1,16 +1,45 @@
 import { objectType, nonNull, inputObjectType, enumType } from 'nexus';
 import { User as UserType, Post as PostType } from '../../types/backingTypes';
+import { optionalVerifyUser } from '../../utils/optionalVerfiyUser';
 
 export const User = objectType({
   name: 'User',
   definition(t) {
     t.nonNull.id('id', { description: 'Id of the user' });
     t.nonNull.string('fullName', { description: 'Full name of the user' });
-    t.nonNull.string('email', { description: 'email of the user' });
+    t.string('email', {
+      description: 'email of the user',
+      async resolve(user, _, { auth }) {
+        //we don't want to expose email of all the users.
+        const payload = optionalVerifyUser(auth);
+        if (payload) {
+          if (user.id === payload.id) {
+            return user.email;
+          } else {
+            return null;
+          }
+        } else {
+          return null;
+        }
+      },
+    });
     t.nonNull.list.field('posts', {
       type: nonNull('Post'),
-      async resolve(user, _, { prisma }) {
-        return await prisma.post.findMany({ where: { authorId: user.id } });
+      async resolve(user, _, { prisma, auth }) {
+        const payload = optionalVerifyUser(auth);
+        if (payload) {
+          if (user.id === payload.id) {
+            return await prisma.post.findMany({ where: { authorId: user.id } });
+          } else {
+            return await prisma.post.findMany({
+              where: { authorId: user.id, published: true },
+            });
+          }
+        } else {
+          return await prisma.post.findMany({
+            where: { authorId: user.id, published: true },
+          });
+        }
       },
     });
     t.nonNull.list.field('comments', {

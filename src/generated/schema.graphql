@@ -120,7 +120,7 @@ type Query {
   comment: [Comment!]!
   currentUser: User
   post(
-    """search the posts by title or body"""
+    """search the published posts by title or body"""
     searchByNameOrBody: String
   ): [Post!]!
   users(
@@ -174,7 +174,7 @@ type User {
   comments: [Comment!]!
 
   """email of the user"""
-  email: String!
+  email: String
 
   """Full name of the user"""
   fullName: String!

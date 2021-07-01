@@ -137,7 +137,7 @@ export interface NexusGenFieldTypes {
   }
   User: { // field return type
     comments: NexusGenRootTypes['Comment'][]; // [Comment!]!
-    email: string; // String!
+    email: string | null; // String
     fullName: string; // String!
     id: string; // ID!
     posts: NexusGenRootTypes['Post'][]; // [Post!]!
